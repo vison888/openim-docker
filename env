@@ -36,7 +36,7 @@ MONGO_PASSWORD=openIM123                   # MongoDB password
 
 # Kafka configuration
 KAFKA_ADDRESS="kafka:9094"                 # Address of Kafka server
-KAFKA_EXTERNAL_HOST=101.126.80.22              # External host for Kafka (change to your server IP)
+KAFKA_EXTERNAL_HOST=localhost              # External host for Kafka (change to your server IP)
 KAFKA_EXTERNAL_PORT=9094                   # External port for Kafka
 KAFKA_INTERNAL_PORT=9092                   # Internal port for Kafka
 KAFKA_USERNAME=kafka                       # Kafka username for SASL authentication
@@ -53,8 +53,7 @@ ETCD_CLIENT_PORT=2379                      # External client port for Etcd
 ETCD_PEER_PORT=2380                        # External peer port for Etcd
 ETCD_ROOT_PASSWORD=etcdPassword123         # Etcd root password
 
-# Etcd Browser configuration
-ETCD_BROWSER_PORT=9980                     # Port for Etcd browser web interface
+
 
 # Redis configuration
 REDIS_ADDRESS="redis:6379"                 # Address of Redis server
@@ -62,7 +61,7 @@ REDIS_PORT=6379                            # External port for Redis
 REDIS_PASSWORD=openIM123                   # Redis password
 
 # MinIO configuration
-MINIO_EXTERNAL_ADDRESS="http://101.126.80.22:10005" # External address for MinIO needs to be manually modified
+MINIO_EXTERNAL_ADDRESS="http://external_ip:10005" # External address for MinIO needs to be manually modified
 MINIO_INTERNAL_ADDRESS="minio:9000"        # Internal network address of MinIO
 MINIO_ACCESS_KEY_ID=root                   # Access key ID for MinIO
 MINIO_SECRET_ACCESS_KEY=openIM123          # Secret access key for MinIO
@@ -94,4 +93,4 @@ API_URL="http://openim-server:10002"       # API URL for OpenIM server
 LOG_IS_STDOUT=true                         # Log output to standard out
 LOG_LEVEL=3                                # Log level: 3 for production environments, 6 for test environments
 
-GRAFANA_URL="http://external_ip:13000/"    # Define the URL for accessing the Grafana dashboard, specifying the external IP and port
+GRAFANA_URL="http://external_ip:13000/"    # Define the URL for accessing the Grafana dashboard, specifying the external IP and port 

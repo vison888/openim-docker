@@ -1,6 +1,6 @@
 # OpenIM 中间件部署说明
 
-本项目已配置了五个核心中间件，支持远程访问和密码认证，并包含Kafka管理界面。
+本项目已配置了五个核心中间件，支持远程访问和密码认证，并包含Kafka和Etcd管理界面。
 
 ## 中间件列表
 
@@ -86,6 +86,8 @@ sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule require
 - Web 控制台: http://localhost:10004
 - API 端点: http://localhost:10005
 
+## 管理界面
+
 ### 6. Kafka UI (Kafka 管理界面)
 - **镜像**: provectuslabs/kafka-ui:latest
 - **端口**: 9080
@@ -99,6 +101,26 @@ sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule require
   - 监控消费者组
   - 查看消息内容
   - 集群状态监控
+
+### 7. Etcd Browser (Etcd 管理界面)
+- **镜像**: joinsunsoft/etcdv3-browser:0.9.0
+- **端口**: 9980
+- **认证**: 使用 Etcd 的 root 用户认证
+
+**访问方式**:
+- Web 界面: http://localhost:9980
+- 功能:
+  - 浏览 Etcd 键值存储
+  - 查看和编辑键值对
+  - 实时监控数据变化
+  - 支持 Etcd v3 API
+
+**使用说明**:
+1. 打开浏览器访问: http://localhost:9980
+2. 在连接配置页面输入:
+   - Endpoint: `http://etcd:2379` (容器内已自动配置)
+   - Username: `root`
+   - Password: `etcdPassword123`
 
 ## 部署和启动
 
@@ -117,6 +139,9 @@ docker-compose up -d redis
 
 # 只启动 Etcd
 docker-compose up -d etcd
+
+# 只启动 Etcd Browser
+docker-compose up -d etcd-browser
 
 # 只启动 Kafka
 docker-compose up -d kafka
@@ -142,6 +167,7 @@ docker-compose logs
 docker-compose logs mongo
 docker-compose logs redis
 docker-compose logs etcd
+docker-compose logs etcd-browser
 docker-compose logs kafka
 docker-compose logs kafka-ui
 docker-compose logs minio
@@ -188,10 +214,11 @@ MINIO_SECRET_ACCESS_KEY=your_new_password
 在 `env` 文件中修改端口配置：
 
 ```bash
-# Kafka UI 端口
+# 管理界面端口
 KAFKA_UI_PORT=9080
+ETCD_BROWSER_PORT=9980
 
-# 其他中间件端口
+# 中间件端口
 MONGO_PORT=27017
 REDIS_PORT=6379
 ETCD_CLIENT_PORT=2379
@@ -219,6 +246,25 @@ MINIO_PORT=10005
 3. 输入主题名称和配置
 4. 点击 "Create Topic"
 
+## Etcd Browser 使用指南
+
+### 访问 Etcd Browser
+1. 启动服务后访问: http://localhost:9980
+2. 系统已自动配置连接参数
+
+### 主要功能
+- **键值浏览**: 以树形结构浏览所有键值对
+- **数据操作**: 创建、修改、删除键值对
+- **实时监控**: 监控键值变化
+- **搜索功能**: 快速查找特定的键
+- **权限管理**: 查看和管理 Etcd 用户权限
+
+### 操作示例
+1. **查看键值**: 在左侧树形结构中点击任意键
+2. **添加键值**: 点击 "Add Key" 按钮
+3. **编辑值**: 双击值区域进行编辑
+4. **删除键**: 选中键后点击删除按钮
+
 ## 数据持久化
 
 所有数据都存储在 `./components/` 目录下：
@@ -236,7 +282,7 @@ MINIO_PORT=10005
 3. **网络隔离**: 在生产环境中使用内部网络
 4. **定期备份**: 定期备份重要数据
 5. **监控日志**: 监控服务日志以发现异常
-6. **Kafka UI 访问控制**: 在生产环境中限制 Kafka UI 的访问
+6. **管理界面访问控制**: 在生产环境中限制管理界面的访问
 
 ## 端口汇总
 
@@ -246,7 +292,8 @@ MINIO_PORT=10005
 | Redis | 6379 | 6379 | 缓存连接 |
 | Etcd | 2379/2380 | 2379/2380 | 服务发现 |
 | Kafka | 9092/9094 | 9092/9094 | 消息队列 |
-| Kafka UI | 8080 | 9080 | Web 管理界面 |
+| Kafka UI | 8080 | 9080 | Kafka 管理界面 |
+| Etcd Browser | 80 | 9980 | Etcd 管理界面 |
 | MinIO | 9000/9090 | 10005/10004 | 对象存储 |
 
 ## 故障排除
@@ -257,7 +304,7 @@ MINIO_PORT=10005
 2. **权限问题**: 确保 Docker 有足够的权限访问数据目录
 3. **内存不足**: 确保服务器有足够的内存运行所有服务
 4. **网络问题**: 检查 Docker 网络配置
-5. **Kafka UI 无法连接**: 确保 Kafka 服务已正常启动
+5. **管理界面无法连接**: 确保对应的中间件服务已正常启动
 
 ### Kafka UI 故障排除
 
@@ -270,6 +317,22 @@ docker-compose exec kafka-ui curl -f http://localhost:8080/actuator/health
 
 # 重启 Kafka UI
 docker-compose restart kafka-ui
+```
+
+### Etcd Browser 故障排除
+
+```bash
+# 检查 Etcd Browser 日志
+docker-compose logs etcd-browser
+
+# 检查 Etcd 连接状态
+docker-compose exec etcd-browser curl -f http://localhost:80
+
+# 重启 Etcd Browser
+docker-compose restart etcd-browser
+
+# 验证 Etcd 服务状态
+docker-compose exec etcd etcdctl --endpoints=localhost:2379 endpoint health
 ```
 
 ### 重置服务
