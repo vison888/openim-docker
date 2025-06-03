@@ -90,21 +90,6 @@ services:
     networks:
       - openim
 
-  etcd-browser:
-    image: "${ETCD_BROWSER_IMAGE}"
-    container_name: etcd-browser
-    restart: always
-    ports:
-      - "${ETCD_BROWSER_PORT}:80"
-    environment:
-      - ETCD_ENDPOINTS=http://etcd:2379
-      - ETCD_USERNAME=root
-      - ETCD_PASSWORD=${ETCD_ROOT_PASSWORD}
-    depends_on:
-      - etcd
-    networks:
-      - openim
-
   kafka:
     image: "${KAFKA_IMAGE}"
     container_name: kafka
@@ -146,11 +131,12 @@ services:
       - "${KAFKA_UI_PORT}:8080"
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9094
       - KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL=SASL_PLAINTEXT
       - KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM=PLAIN
       - KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
       - AUTH_TYPE=LOGIN_FORM
+      - DYNAMIC_CONFIG_ENABLED=true
       - SPRING_SECURITY_USER_NAME=${KAFKA_UI_USERNAME}
       - SPRING_SECURITY_USER_PASSWORD=${KAFKA_UI_PASSWORD}
     depends_on:
