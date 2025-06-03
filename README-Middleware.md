@@ -1,6 +1,6 @@
 # OpenIM 中间件部署说明
 
-本项目已配置了五个核心中间件，支持远程访问和密码认证。
+本项目已配置了五个核心中间件，支持远程访问和密码认证，并包含Kafka管理界面。
 
 ## 中间件列表
 
@@ -86,6 +86,20 @@ sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule require
 - Web 控制台: http://localhost:10004
 - API 端点: http://localhost:10005
 
+### 6. Kafka UI (Kafka 管理界面)
+- **镜像**: provectuslabs/kafka-ui:latest
+- **端口**: 9080
+- **用户名**: `admin`
+- **密码**: `kafkaUI123`
+
+**访问方式**:
+- Web 界面: http://localhost:9080
+- 功能: 
+  - 查看和管理 Kafka 主题
+  - 监控消费者组
+  - 查看消息内容
+  - 集群状态监控
+
 ## 部署和启动
 
 ### 启动所有中间件
@@ -107,6 +121,9 @@ docker-compose up -d etcd
 # 只启动 Kafka
 docker-compose up -d kafka
 
+# 只启动 Kafka UI
+docker-compose up -d kafka-ui
+
 # 只启动 MinIO
 docker-compose up -d minio
 ```
@@ -126,6 +143,7 @@ docker-compose logs mongo
 docker-compose logs redis
 docker-compose logs etcd
 docker-compose logs kafka
+docker-compose logs kafka-ui
 docker-compose logs minio
 ```
 
@@ -159,9 +177,47 @@ ETCD_ROOT_PASSWORD=your_new_password
 # Kafka 密码
 KAFKA_PASSWORD=your_new_password
 
+# Kafka UI 密码
+KAFKA_UI_PASSWORD=your_new_password
+
 # MinIO 密码
 MINIO_SECRET_ACCESS_KEY=your_new_password
 ```
+
+### 修改端口
+在 `env` 文件中修改端口配置：
+
+```bash
+# Kafka UI 端口
+KAFKA_UI_PORT=9080
+
+# 其他中间件端口
+MONGO_PORT=27017
+REDIS_PORT=6379
+ETCD_CLIENT_PORT=2379
+KAFKA_EXTERNAL_PORT=9094
+MINIO_PORT=10005
+```
+
+## Kafka UI 使用指南
+
+### 访问 Kafka UI
+1. 启动服务后访问: http://localhost:9080
+2. 使用用户名 `admin` 和密码 `kafkaUI123` 登录
+
+### 主要功能
+- **集群概览**: 查看 Kafka 集群状态和基本信息
+- **主题管理**: 创建、删除、配置主题
+- **消息浏览**: 查看主题中的消息内容
+- **消费者组**: 监控消费者组的消费进度
+- **连接器**: 管理 Kafka Connect 连接器（如果有）
+- **架构注册**: 管理 Schema Registry（如果有）
+
+### 创建主题示例
+1. 在 Kafka UI 中点击 "Topics"
+2. 点击 "Add a Topic"
+3. 输入主题名称和配置
+4. 点击 "Create Topic"
 
 ## 数据持久化
 
@@ -180,6 +236,18 @@ MINIO_SECRET_ACCESS_KEY=your_new_password
 3. **网络隔离**: 在生产环境中使用内部网络
 4. **定期备份**: 定期备份重要数据
 5. **监控日志**: 监控服务日志以发现异常
+6. **Kafka UI 访问控制**: 在生产环境中限制 Kafka UI 的访问
+
+## 端口汇总
+
+| 服务 | 内部端口 | 外部端口 | 用途 |
+|------|----------|----------|------|
+| MongoDB | 27017 | 27017 | 数据库连接 |
+| Redis | 6379 | 6379 | 缓存连接 |
+| Etcd | 2379/2380 | 2379/2380 | 服务发现 |
+| Kafka | 9092/9094 | 9092/9094 | 消息队列 |
+| Kafka UI | 8080 | 9080 | Web 管理界面 |
+| MinIO | 9000/9090 | 10005/10004 | 对象存储 |
 
 ## 故障排除
 
@@ -189,6 +257,20 @@ MINIO_SECRET_ACCESS_KEY=your_new_password
 2. **权限问题**: 确保 Docker 有足够的权限访问数据目录
 3. **内存不足**: 确保服务器有足够的内存运行所有服务
 4. **网络问题**: 检查 Docker 网络配置
+5. **Kafka UI 无法连接**: 确保 Kafka 服务已正常启动
+
+### Kafka UI 故障排除
+
+```bash
+# 检查 Kafka UI 日志
+docker-compose logs kafka-ui
+
+# 检查 Kafka 连接状态
+docker-compose exec kafka-ui curl -f http://localhost:8080/actuator/health
+
+# 重启 Kafka UI
+docker-compose restart kafka-ui
+```
 
 ### 重置服务
 
